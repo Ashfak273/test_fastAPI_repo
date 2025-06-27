@@ -3,11 +3,6 @@ from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Optional
 
-# Pydantic models for response validation
-class SecretsCheckResponse(BaseModel):
-    is_openai_key_present: bool
-    is_calendar_token_present: bool
-    
 class HelloResponse(BaseModel):
     message: str
 
@@ -23,7 +18,7 @@ async def read_root():
     """Root endpoint to verify service is running."""
     return HelloResponse(message="Hello World from Cloud Run!")
 
-@app.get("/my-secrets", response_model=SecretsCheckResponse)
+@app.get("/my-secrets")
 async def read_secrets(
 ):
     """
@@ -34,10 +29,10 @@ async def read_secrets(
         openai_key = os.getenv("OPENAI_API_KEY", "Not Found")
         calendar_token = os.getenv("CALENDAR_API_TOKEN", "Not Found")
         
-        return SecretsCheckResponse(
-            is_openai_key_present=openai_key != "Not Found",
-            is_calendar_token_present=calendar_token != "Not Found"
-        )
+        return {
+            "OPENAI_API_KEY": openai_key,
+            "CALENDAR_API_TOKEN": calendar_token
+        }
     except Exception as e:
         raise HTTPException(
             status_code=500, 
